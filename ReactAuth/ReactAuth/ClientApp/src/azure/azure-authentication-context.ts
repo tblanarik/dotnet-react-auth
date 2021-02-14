@@ -5,6 +5,7 @@ import {
   EndSessionRequest,
   RedirectRequest,
   PopupRequest,
+  SilentRequest,
 } from "@azure/msal-browser";
 
 import { MSAL_CONFIG } from "./azure-authentication-config";
@@ -16,6 +17,9 @@ export class AzureAuthenticationContext {
   private account?: AccountInfo;
   private loginRedirectRequest?: RedirectRequest;
   private loginRequest?: PopupRequest;
+  private silentRequest: SilentRequest = {
+    scopes: []
+  }
 
   public isAuthenticationConfigured = false;
 
@@ -41,7 +45,19 @@ export class AzureAuthenticationContext {
   }
 
   login(signInType: string, setUser: any): void {
-    if (signInType === "loginPopup") {
+    if(signInType === "silent")
+    {
+      this.silentRequest.account = this.getAccount();
+      this.myMSALObj
+      .acquireTokenSilent(this.silentRequest)
+      .then((resp: AuthenticationResult) => {
+        this.handleResponse(resp, setUser);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    }
+    else if (signInType === "loginPopup") {
       this.myMSALObj
         .loginPopup(this.loginRequest)
         .then((resp: AuthenticationResult) => {
@@ -70,10 +86,10 @@ export class AzureAuthenticationContext {
     }
 
     if (this.account) {
-      incomingFunction(this.account);
+      incomingFunction(response);//, this.account);
     }
   }
-  private getAccount(): AccountInfo | undefined {
+  public getAccount(): AccountInfo | undefined {
     console.log(`loadAuthModule`);
     const currentAccounts = this.myMSALObj.getAllAccounts();
     if (currentAccounts === null) {

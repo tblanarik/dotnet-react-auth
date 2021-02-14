@@ -1,6 +1,11 @@
-import React, { Component } from 'react';
+import { AuthenticationResult } from "@azure/msal-browser";
+import React, { Component } from "react";
+import AzureAuthenticationContext from "../azure/azure-authentication-context";
 
-export class FetchData extends Component<{}, { forecasts: [], loading: boolean }> {
+export class FetchData extends Component<
+  {},
+  { forecasts: []; loading: boolean }
+> {
   static displayName = FetchData.name;
 
   constructor(props: any) {
@@ -14,7 +19,7 @@ export class FetchData extends Component<{}, { forecasts: [], loading: boolean }
 
   static renderForecastsTable(forecasts: any[]) {
     return (
-      <table className='table table-striped' aria-labelledby="tabelLabel">
+      <table className="table table-striped" aria-labelledby="tabelLabel">
         <thead>
           <tr>
             <th>Date</th>
@@ -24,27 +29,31 @@ export class FetchData extends Component<{}, { forecasts: [], loading: boolean }
           </tr>
         </thead>
         <tbody>
-          {forecasts.map((forecast: any) =>
+          {forecasts.map((forecast: any) => (
             <tr key={forecast.date}>
               <td>{forecast.date}</td>
               <td>{forecast.temperatureC}</td>
               <td>{forecast.temperatureF}</td>
               <td>{forecast.summary}</td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     );
   }
 
   render() {
-    let contents = this.state.loading
-      ? <p><em>Loading...</em></p>
-      : FetchData.renderForecastsTable(this.state.forecasts);
+    let contents = this.state.loading ? (
+      <p>
+        <em>Loading...</em>
+      </p>
+    ) : (
+      FetchData.renderForecastsTable(this.state.forecasts)
+    );
 
     return (
       <div>
-        <h1 id="tabelLabel" >Weather forecast</h1>
+        <h1 id="tabelLabel">Weather forecast</h1>
         <p>This component demonstrates fetching data from the server.</p>
         {contents}
       </div>
@@ -52,8 +61,31 @@ export class FetchData extends Component<{}, { forecasts: [], loading: boolean }
   }
 
   async populateWeatherData() {
-    const response = await fetch('weatherforecast');
-    const data = await response.json();
-    this.setState({ forecasts: data, loading: false });
+    const authenticationModule: AzureAuthenticationContext = new AzureAuthenticationContext();
+
+    console.log("TEST:  ", authenticationModule.getAccount(), " END TEST");
+
+    var account = authenticationModule.getAccount();
+    var mode = "loginPopup";
+    if(account !== null)
+    {
+      mode = "silent";
+    }
+
+    authenticationModule.login(
+      mode,
+      async (resp: AuthenticationResult) => {
+        var headers = new Headers();
+        var bearer = "Bearer " + resp.accessToken;
+        headers.append("Authorization", bearer);
+        var options = {
+          method: "GET",
+          headers: headers,
+        };
+        const response = await fetch("weatherforecast", options);
+        const data = await response.json();
+        this.setState({ forecasts: data, loading: false });
+      }
+    );
   }
 }

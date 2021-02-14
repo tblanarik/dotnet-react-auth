@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AzureAuthenticationContext from "../azure/azure-authentication-context";
-import { AccountInfo } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult } from "@azure/msal-browser";
 
 const ua = window.navigator.userAgent;
 const msie = ua.indexOf("MSIE ");
@@ -30,11 +30,17 @@ const AzureAuthenticationButton = ({ onAuthenticated }: any): JSX.Element => {
     }
   };
 
-  const returnedAccountInfo = (user: AccountInfo) => {
+  const returnedAccountInfo = (response: AuthenticationResult) => {
     // set state
-    setAuthenticated(user?.name ? true : false);
-    onAuthenticated(user);
-    setUser(user);
+    var account = null; 
+    if (response !== null && response.account !== null) {
+      account = response.account;
+    } else {
+      account = authenticationModule.getAccount();
+    }
+    setAuthenticated(account?.name ? true : false);
+    onAuthenticated(account);
+    setUser(account);
   };
 
   const showLogInButton = (): any => {
