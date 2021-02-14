@@ -12,7 +12,7 @@ export class FetchData extends Component<{}, { forecasts: [], loading: boolean }
     this.populateWeatherData();
   }
 
-  static renderForecastsTable(forecasts: any) {
+  static renderForecastsTable(forecasts: any[]) {
     return (
       <table className='table table-striped' aria-labelledby="tabelLabel">
         <thead>
