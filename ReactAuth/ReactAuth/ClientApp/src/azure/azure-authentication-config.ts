@@ -8,7 +8,7 @@ export const MSAL_CONFIG: Configuration = {
     clientId: AzureActiveDirectoryAppClientId,
   },
   cache: {
-    cacheLocation: "sessionStorage",
+    cacheLocation: "localStorage",
     storeAuthStateInCookie: false,
   },
   system: {
